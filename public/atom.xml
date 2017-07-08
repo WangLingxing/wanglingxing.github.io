@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-  <title>灵行的博客</title>
+  <title>Lingxing的博客</title>
   <subtitle>记录点点滴滴~</subtitle>
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://wanglingxing.com/"/>
-  <updated>2017-07-01T05:28:48.000Z</updated>
+  <updated>2017-07-08T07:00:47.000Z</updated>
   <id>http://wanglingxing.com/</id>
   
   <author>
@@ -16,11 +16,178 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>接口测试之HTTP请求</title>
+    <link href="http://wanglingxing.com/2017/07/08/%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95%E4%B9%8BHTTP%E8%AF%B7%E6%B1%82/"/>
+    <id>http://wanglingxing.com/2017/07/08/接口测试之HTTP请求/</id>
+    <published>2017-07-08T06:32:25.000Z</published>
+    <updated>2017-07-08T07:00:47.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="/2017/07/08/接口测试之HTTP请求/images.png" alt="http header"></p>
+<h2 id="接口测试之http请求的理解"><a href="#接口测试之http请求的理解" class="headerlink" title="接口测试之http请求的理解"></a>接口测试之http请求的理解</h2><a id="more"></a>
+<blockquote>
+<p>原作者：刘文静  |  2017. 04. 14 </p>
+</blockquote>
+<h3 id="1-从tcp到http"><a href="#1-从tcp到http" class="headerlink" title="1. 从tcp到http"></a>1. 从tcp到http</h3><p>从TCP/IP四层网络模型讲起。一个典型的TCP/IP四层网络模型如下:<br><img src="/2017/07/08/接口测试之HTTP请求/tcpip.jpg" alt="http header"></p>
+<p>对于我们要关注的是,http是建立在tcp的基础上的。</p>
+<h3 id="2-一次典型的http连接过程"><a href="#2-一次典型的http连接过程" class="headerlink" title="2 .一次典型的http连接过程"></a>2 .一次典型的http连接过程</h3><p>一次http请求，是由客户端发起，服务器响应，然后相互交换数据的过程。 </p>
+<p><img src="/2017/07/08/接口测试之HTTP请求/tcpprocess.jpg" alt="http header"></p>
+<p>如上图所示，总结下。</p>
+<p>第一步先建立连接通道<br>第二步发送消息，接受反馈<br>断开连接<br>我们通常称http为短连接，就是指这样一个过程。一个请求建立以后处理完消息以后就断开连接了。 当然如果我们http请求的时候每一次都需要一个连接建立和断开的过程的话， 对服务器性能和响应会有很大的压力。 所以在http协议中有加了keep_alive来 维持连接状态，第一次请求的时候不断开连接，而第二次请求的时候就不需要再次连接了。</p>
+<p>当然在第二步的时候，客户端和服务器要进行信息的交互， 要一定要对消息的格式进行约定，这就是http协议结构了。</p>
+<h3 id="3-http协议结构详解"><a href="#3-http协议结构详解" class="headerlink" title="3. http协议结构详解"></a>3. http协议结构详解</h3><h4 id="3-1-http请求"><a href="#3-1-http请求" class="headerlink" title="3.1 http请求"></a>3.1 http请求</h4><p>http请求由三部分组成，分别是：请求行、消息报头(header)、请求正文（body）.</p>
+<p><img src="接口测试之HTTP请求/httpformat.jpg" alt="http header"></p>
+<p>请求行由三部分组成：</p>
+<p>消息类型(post、get、delete …)<br>uri<br>版本号<br>消息报头(http header)：</p>
+<p><code>Accept</code>：指定客户端接受哪些类型的信息。eg：Accept:text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,/;q=0.8</p>
+<p><code>Accept-Charset</code>： 客户端接受的字符集。 eg: Accept-Encoding:gzip, deflate, sdch</p>
+<p><code>Accept-Language</code>,类似于Accept，但是它是用于指定一种自然语言. eg: Accept-Language:zh-CN,zh;q=0.8,en;q=0.6<br>Cache-Control, 用于指定缓存指令 Cache-Control:no-cache</p>
+<p><code>Connection</code>, 是否长连接这。 为了下一次请求的性能。 eg: Connection:keep-alive</p>
+<p><code>Cookie</code>, http是无状态的，每次请求的时候服务器识别不了这个太电脑或者用户的请求是否已经请求过了。<br>为了识别，第一次的请求的时候会在客户端存储一个cookie 在第二请求的时候带上以帮助识别。eg:Cookie:JSESSIONID=67EF1672E64799D80A696EBC0160E156</p>
+<p><code>Host</code>, eg:Host:localhost:8080</p>
+<p><code>User-Agent</code>,浏览器的版本信息。 我们普通的Http请求是不带的。很多爬虫程序就会在http header中加上User-Agent，以便欺骗我是一个浏览器。 User-Agent:Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2467.2 Safari/537.36</p>
+<p><code>请求正文(http body)</code>： 请求的实际参数，通常用户做 post的时候的数据发送。</p>
+<h4 id="3-2-get-和-post的区别"><a href="#3-2-get-和-post的区别" class="headerlink" title="3.2 get 和 post的区别"></a>3.2 get 和 post的区别</h4><p>简单地来说，get是用来获取数据的，post是用来发送数据的。 当http get请求的时候通常不需要用到http body。 而在进行post的时候需要用到http body。</p>
+<p>举个例子， 进行一次 http get ，其地址为 <a href="http://localhost:8080/increase" target="_blank" rel="external">http://localhost:8080/increase</a> ， 参数为id=1，那么</p>
+<p>其url地址为：<a href="http://localhost:8080/increase?id=1" target="_blank" rel="external">http://localhost:8080/increase?id=1</a><br>其http header为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">GET /increase?id=1 HTTP/1.1 </div><div class="line">Host: localhost:8080 </div><div class="line">Cache-Control: no-cache </div><div class="line">Postman-Token: 0aae2b06-2384-668e-eec9-ac94e149f2d8</div><div class="line">http body为空</div></pre></td></tr></table></figure>
+<p>而当进行http post的时候, 如果其地址为 <a href="http://localhost:8080/postData，" target="_blank" rel="external">http://localhost:8080/postData，</a> 参数为response:aaaa， 那么</p>
+<p>其url为： <a href="http://localhost:8080/postData" target="_blank" rel="external">http://localhost:8080/postData</a><br>其http header为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">POST /postData HTTP/1.1 </div><div class="line">Host: localhost:8080 </div><div class="line">Cache-Control: no-cache </div><div class="line">Postman-Token: 20f272d2-cb4c-423e-a292-d8f563ffed42 </div><div class="line">Content-Type: multipart/form-data; </div><div class="line">boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW</div></pre></td></tr></table></figure>
+<p>其 http body为：</p>
+<p><code>response:aaaa</code></p>
+<h3 id="4-http返回"><a href="#4-http返回" class="headerlink" title="4. http返回"></a>4. http返回</h3><p>如上我们要对http的请求做格式约定，那必定也必须对http的返回也做格式的约定。这里就引出了： Respose Header和Response body的概念。</p>
+<p>客户端进行一个http请求，服务器端必定要返回这个请求对应的数据。这些数据就放在 Respose body中，但是这些数据是有格式的，客户端要对这些格式做解析那必定要按照一定的格式。这些格式就定义在 Respose Header中，典型的如：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Content-Length:1</div><div class="line">Content-Type:text/html;charset=UTF-8</div></pre></td></tr></table></figure>
+<p>又如一个js文件：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">Accept-Ranges:bytes</div><div class="line">Age:<span class="number">9472819</span></div><div class="line">Cache-Control:max-age=<span class="number">31536000</span></div><div class="line">Connection:keep-alive</div><div class="line">Content-Encoding:gzip</div><div class="line">Content-Length:<span class="number">580</span></div><div class="line">Content-Type:text/javascript</div><div class="line"><span class="built_in">Date</span>:Thu, <span class="number">13</span> Apr <span class="number">2017</span> <span class="number">07</span>:<span class="number">37</span>:<span class="number">40</span> GMT</div><div class="line">ETag:<span class="string">"3616102196"</span></div><div class="line">Expires:Sun, <span class="number">24</span> Dec <span class="number">2017</span> <span class="number">16</span>:<span class="number">17</span>:<span class="number">21</span> GMT</div><div class="line">Last-Modified:Mon, <span class="number">28</span> Sep <span class="number">2015</span> <span class="number">08</span>:<span class="number">00</span>:<span class="number">43</span> GMT</div><div class="line">Ohc-Response-Time:<span class="number">1</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span> <span class="number">0</span></div><div class="line">Server:JSP3/<span class="number">2.0</span><span class="number">.14</span></div><div class="line">Vary:Accept-Encoding    </div><div class="line"><span class="built_in">Date</span>:Thu, <span class="number">13</span> Apr <span class="number">2017</span> <span class="number">07</span>:<span class="number">18</span>:<span class="number">58</span> GMT</div></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;img src=&quot;/2017/07/08/接口测试之HTTP请求/images.png&quot; alt=&quot;http header&quot;&gt;&lt;/p&gt;
+&lt;h2 id=&quot;接口测试之http请求的理解&quot;&gt;&lt;a href=&quot;#接口测试之http请求的理解&quot; class=&quot;headerlink&quot; title=&quot;接口测试之http请求的理解&quot;&gt;&lt;/a&gt;接口测试之http请求的理解&lt;/h2&gt;
+    
+    </summary>
+    
+      <category term="接口测试" scheme="http://wanglingxing.com/categories/%E6%8E%A5%E5%8F%A3%E6%B5%8B%E8%AF%95/"/>
+    
+    
+      <category term="HTTP" scheme="http://wanglingxing.com/tags/HTTP/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>707</title>
+    <link href="http://wanglingxing.com/2017/07/07/707/"/>
+    <id>http://wanglingxing.com/2017/07/07/707/</id>
+    <published>2017-07-07T13:14:10.000Z</published>
+    <updated>2017-07-07T14:29:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>今天一到公司就忙着干活，只是在抽闲中给她发了一条早安问候。习惯了她会延时个一段时间给我回复。</p>
+<p>“我被车撞了” 看到这条消息眼一黑，第一反怎么会这样，有没有事，在哪里，恨不得马上过去照顾她.”请看朋友圈” 我马上一看，是腿受伤了，也包扎过，应该不是打伤，MD这小妞太吓人了。缓过神来，头还是昏沉沉的，计划好的工作也忘的干净，不过万幸不是大事故。<br><a id="more"></a><br>今天这事让我意识到我很在乎她，即使她没有主动找我聊天，没有给我留言，没有给我点过赞，更没有主动给我打电话，我也想好好的对她，认认真真的对她。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;今天一到公司就忙着干活，只是在抽闲中给她发了一条早安问候。习惯了她会延时个一段时间给我回复。&lt;/p&gt;
+&lt;p&gt;“我被车撞了” 看到这条消息眼一黑，第一反怎么会这样，有没有事，在哪里，恨不得马上过去照顾她.”请看朋友圈” 我马上一看，是腿受伤了，也包扎过，应该不是打伤，MD这小妞太吓人了。缓过神来，头还是昏沉沉的，计划好的工作也忘的干净，不过万幸不是大事故。&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="essay" scheme="http://wanglingxing.com/categories/essay/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>TDOA技术</title>
+    <link href="http://wanglingxing.com/2017/07/04/TDOA%E6%8A%80%E6%9C%AF/"/>
+    <id>http://wanglingxing.com/2017/07/04/TDOA技术/</id>
+    <published>2017-07-04T13:38:21.000Z</published>
+    <updated>2017-07-07T14:29:20.000Z</updated>
+    
+    <content type="html"><![CDATA[<p><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script><br><code>TA</code>:时间提前量</p>
+<p>在<strong>GMS</strong>系统中，在通信的工程中，如果移动台在呼叫期间远离基站的方向上移动，那么从基站发出的消息将越来越迟的到达移动台。与此同时，移动台的应答信息也会越来越迟的到达基站。而时延过长也会导致这样的一个情况：基站收到的移动台在本时隙上发送的消息与基站在其下一个时隙收到的另一个呼叫信息重叠起来，而引起码间干扰。因此在呼叫进行期间，移动台发给基站的测量报告头上携带有移动台测量的延值，基站必须监视呼叫到达的时间，并在下行信道上一480ms一次的频率向移动台发送指令，指示移动台提前发送的时间，这个时间就是<strong>时间提前量</strong>（<em>time advance，TA</em>）。移动台可以利用<strong>TA</strong>参数就可以调整信号码元的发送时刻，确保各移动台的信息到达基站时能避免时隙重叠。</p>
+<a id="more"></a>
+<p><strong>TA</strong>的值域是0-63（0-233µs），它被<strong>GSM</strong>定时提前的编码0-63bit所限，所以GSM最大的覆盖距离是35km</p>
+<p>计算如下：</p>
+<p>$$1/2 <em> 3.7µs/bit </em> 63bit <em> C = 35km(1/2 </em> 3.7 <em> 10^{-6} </em> 63 <em> 3 </em> 10^8 ≈ 35000)$$</p>
+<p>其中<strong>3.7µs/bit</strong>为每bit时长，63bit为时间调整最大比特数，<strong>C</strong>为光速，1/2是考虑信号往返。这样可以得出1bit对应的距离相当于554m。因为信号传播过程中会受到多径传播和ms同步精度的影响，TA的误差可能会达到3bit左右（1.6km），而理想情况下最高精度可以达到554m以内。所以<strong>TA</strong>定位测量的误差也较高。</p>
+<p><strong>TA</strong>定位也需要获取<strong>Cell-ID</strong>来获得大致的地理位置，然后用TA来确定移动台离基站的距离，得到比<strong>Cell-ID</strong>更加精确的位置。一个基站定位精度为基站覆盖范围；两个基站可以可到两个定位点，而三个基站即可确定并得到唯一一个点。为了得到高精度的点，需要对三个基站进行测量，这需要移动台进行小区呼叫切换。<br><strong>优点</strong>：无须对移动台作任何改动，而对基站系统的改动也仅仅需要一个呼叫切换控制。<br><strong>缺点</strong>：采取了强制小区切换，在TA定位过程中无法使用其他的业务通信，增加了信令负荷，需要进行TA测量，定位时间比<strong>Cell-ID</strong>长</p>
+<p>示例：<br>使用QXDM抓取log并保存，之后log用QCAT打开，筛选过滤信令<br>在<code>Immediate Assignment</code>以及<code>Physical Information</code>字段中可以查看到可以看到<strong>TA</strong>，也可以直接搜索<code>time_adv</code>来查看<strong>TA</strong>值，按照文章上面的计算方法可以估算距离</p>
+<p><img src="/2017/07/04/TDOA技术/Pic1.png" alt="qcagt_logs1"></p>
+<p><img src="/2017/07/04/TDOA技术/Pic2.png" alt="qcagt_logs2"></p>
+<p><code>TOA</code>：到达时间<br><code>TOA（Time of Arrival）</code>，<code>TOA</code>定位是需要测量移动台发射信号的到达时间，在发射的信号中添加包含发射时间标识，基站获得发射时间标识得到到达时间，根据到达时间计算移动台到基站的距离，在根据多个距离估计移动台的位置。<br>假设终端位置为（x,y），基站i的位置已知为（xi,yi），t为MS信号到BS的时间，C位光速，那距离$$Ct=\sqrt{((xi-x)^2+(y_i-y)^2)}$$ ，测量三个基站的到达时间既可获得移动台的位置。定位同<code>TA</code>定位法，但由于是测量传播时间，相比于TA有更高的精度。<br><strong>优点</strong>：不用对现有的终端进行改造，定位精度较高，并可以提高时钟精度提高定位精度<br><strong>缺点</strong>：基站需要改造增加测量单元，增加成本；移动终端和基站要做到时间同步，定位精度受时钟精度的影响，否则定位误差很大；同时向多个基站发射信号，增加功耗；信号传播过程受多径效应影响，造成误差。<br><code>TDOA</code>：到达时间差<br><code>TDOA（Time Difference of Arrival）</code>是<code>TOA</code>定位方法的改进。相比于<code>TOA</code>，<code>TDOA</code>不需要移动台和基站的时间精确同步，但基站的时间还是需要同步的。基站设置位置测量单元，之后测量移动台的发射信号的到达时间差。移动台与两个基站的距离的差是一个已知常数，那么根据到达时间快慢可以确定移动台为两基站双曲线的一条。三个基站双曲线焦点即为移动台。假设终端位置为（x,y），基站i的位置已知为（xi,yi）, 基站j的位置已知为（xj,yj）到达时间差为t，那么距离之差为Ct（C是光速），$$Ct=\sqrt{((xi-x)^2+(y_i-y)^2 )}-\sqrt{((xj-x)^2+(yj-y)^2 )}$$在列一个等式即可以确定位置。</p>
+<p><img src="/2017/07/04/TDOA技术/Pic3.png" alt="tdoa"></p>
+<p>相比于<code>TOA</code>，<code>TDOA</code>有如下优点：无需移动台和基站时间同步；计算误差对所有的基站是相同的且其和为零；移动台不需要发送发射时间标识。</p>
+<p><img src="/2017/07/04/TDOA技术/Pic4.png" alt="qcat_log3"></p>
+<p>提供TDOA定位辅助数据小区信息</p>
+<p><img src="/2017/07/04/TDOA技术/Pic5.png" alt="qcat_log4"></p>
+<p>提供定位信息以及测量信息。TDOA信令消息在LTE中是通过NAS层传输。<br>两种定位技术原理大致就是这样</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;&lt;script type=&quot;text/javascript&quot; src=&quot;http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default&quot;&gt;&lt;/script&gt;&lt;br&gt;&lt;code&gt;TA&lt;/code&gt;:时间提前量&lt;/p&gt;
+&lt;p&gt;在&lt;strong&gt;GMS&lt;/strong&gt;系统中，在通信的工程中，如果移动台在呼叫期间远离基站的方向上移动，那么从基站发出的消息将越来越迟的到达移动台。与此同时，移动台的应答信息也会越来越迟的到达基站。而时延过长也会导致这样的一个情况：基站收到的移动台在本时隙上发送的消息与基站在其下一个时隙收到的另一个呼叫信息重叠起来，而引起码间干扰。因此在呼叫进行期间，移动台发给基站的测量报告头上携带有移动台测量的延值，基站必须监视呼叫到达的时间，并在下行信道上一480ms一次的频率向移动台发送指令，指示移动台提前发送的时间，这个时间就是&lt;strong&gt;时间提前量&lt;/strong&gt;（&lt;em&gt;time advance，TA&lt;/em&gt;）。移动台可以利用&lt;strong&gt;TA&lt;/strong&gt;参数就可以调整信号码元的发送时刻，确保各移动台的信息到达基站时能避免时隙重叠。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="LBS" scheme="http://wanglingxing.com/categories/LBS/"/>
+    
+    
+      <category term="TDOA" scheme="http://wanglingxing.com/tags/TDOA/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Cell-ID技术</title>
+    <link href="http://wanglingxing.com/2017/07/03/Cell-ID%E6%8A%80%E6%9C%AF/"/>
+    <id>http://wanglingxing.com/2017/07/03/Cell-ID技术/</id>
+    <published>2017-07-03T14:43:30.000Z</published>
+    <updated>2017-07-07T14:29:54.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>基于网络的<code>Cell-ID</code>定位技术是当移动用户处于一个全向天线覆盖Cell或是处于一个由定向天线覆盖的分扇区Cell时，可以根据一定的方式获取用户所在的蜂窝小区号，移动用户的位置就可以通过其当前所处在系统当中的位置小区<code>Cell-ID</code>转换成地理坐标或者服务区来识别。<code>Cell-ID</code>即<code>GCI</code>是全球小区识别码，每个蜂窝小区有一个唯一的小区识别码，<code>GCI</code>有位置区识别码<code>LAI</code>和小区识别码<code>CI</code>构成，即：<code>GCI = LAI + CI = MCC + MNC + LAC + CI</code>。</p>
+<p><code>Cell-ID</code>定位方法即使只有一个小区也能定位。<code>Cell-ID</code>技术不需要移动台提供任何定位测量信息，也无需对现网进行改动，只需要在网络侧增加简单的定位流程处理，很容易实现，并且空中接口的定位信令传输的很少，定位的时间非常短，因而<code>Cell-ID</code>定位技术在移动网络中被广泛使用。<br><a id="more"></a><br><strong>定位原理</strong>：是网络根据MS当前的服务基站的位置和小区覆盖来定位移动台。若小区为全向小区，那么MS的位置就是以服务基站为中心，小区覆盖范围半径为半径的一个圆形区域内；若小区是分扇区，则MS位置范围为此扇形区域，相比全向小区，确定更小的范围。</p>
+<p>优点：</p>
+<ol>
+<li>成本低</li>
+<li>系统和终端无需升级，现有的网络和终端都可以满足需求</li>
+<li>定位响应时间短</li>
+<li>定位覆盖无死角<br>缺点:</li>
+<li>定位精度低</li>
+</ol>
+<p>使用联通卡在WCDMA 3G网络下进行验证：</p>
+<p>小区号将在如下场景下获得：<br>1、小区路由寻呼 2、定位区域更新 3、小区更新 4、URA更新 5、路由区更新 </p>
+<p>操作：连接QXDM ，手机网络选择仅使用3G，打开QXDM抓取log，插拔SIM卡，保存log<br>log使用QCAT打开，过滤信令，点击RRC Connection Request信令，查看代码</p>
+<p>记录：</p>
+<figure class="highlight plain"><figcaption><span>460 MNC 01（联通）```</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">```lac &apos;11010111 00101011&apos;B =  &apos;55083&apos;D</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><figcaption><span>'10010010 01110100 10000011 1110'B = '153569342'D```</span></figcaption><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">即:</div><div class="line"></div><div class="line">```GCI = MCC + MNC + LAC + CI = 460 + 01 + 55083 + 153569342</div></pre></td></tr></table></figure>
+<p><img src="/2017/07/03/Cell-ID技术/Picture1.png" alt="qcat_logs"></p>
+<p>使用<a href="http://www.minigps.net/cellsearch.html" target="_blank" rel="external">minigps</a>,输入MCC、MNC、LAC以及CI后即可装换成坐标位置在百度地图上显示</p>
+<p><img src="/2017/07/03/Cell-ID技术/Picture2.png" alt="minigps"></p>
+<p>此时，模拟Cell-ID定位完成</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;基于网络的&lt;code&gt;Cell-ID&lt;/code&gt;定位技术是当移动用户处于一个全向天线覆盖Cell或是处于一个由定向天线覆盖的分扇区Cell时，可以根据一定的方式获取用户所在的蜂窝小区号，移动用户的位置就可以通过其当前所处在系统当中的位置小区&lt;code&gt;Cell-ID&lt;/code&gt;转换成地理坐标或者服务区来识别。&lt;code&gt;Cell-ID&lt;/code&gt;即&lt;code&gt;GCI&lt;/code&gt;是全球小区识别码，每个蜂窝小区有一个唯一的小区识别码，&lt;code&gt;GCI&lt;/code&gt;有位置区识别码&lt;code&gt;LAI&lt;/code&gt;和小区识别码&lt;code&gt;CI&lt;/code&gt;构成，即：&lt;code&gt;GCI = LAI + CI = MCC + MNC + LAC + CI&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Cell-ID&lt;/code&gt;定位方法即使只有一个小区也能定位。&lt;code&gt;Cell-ID&lt;/code&gt;技术不需要移动台提供任何定位测量信息，也无需对现网进行改动，只需要在网络侧增加简单的定位流程处理，很容易实现，并且空中接口的定位信令传输的很少，定位的时间非常短，因而&lt;code&gt;Cell-ID&lt;/code&gt;定位技术在移动网络中被广泛使用。&lt;br&gt;&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="LBS" scheme="http://wanglingxing.com/categories/LBS/"/>
+    
+    
+      <category term="Cell-ID" scheme="http://wanglingxing.com/tags/Cell-ID/"/>
+    
+  </entry>
+  
+  <entry>
     <title>first try hexo</title>
     <link href="http://wanglingxing.com/2017/07/01/first-try-hexo/"/>
     <id>http://wanglingxing.com/2017/07/01/first-try-hexo/</id>
     <published>2017-07-01T05:08:23.000Z</published>
-    <updated>2017-07-01T05:28:48.000Z</updated>
+    <updated>2017-07-03T14:13:03.000Z</updated>
     
     <content type="html"><![CDATA[<p>您好，欢迎来到我的个人Hexo博客</p>
 ]]></content>
@@ -32,6 +199,8 @@
     
     </summary>
     
+    
+      <category term="other" scheme="http://wanglingxing.com/tags/other/"/>
     
   </entry>
   
